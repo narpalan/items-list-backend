@@ -1,15 +1,6 @@
 import type { Request, Response } from 'express';
 import type { Item, CreateItemDTO, UpdateItemDTO } from '../types/item.js';
-
-let itens: Item[] = [    
-    { id: 1, name: "Arroz", quantity: 3 },
-    { id: 2, name: "Feijão", quantity: 1 },
-    { id: 3, name: "Leite", quantity: 2 },
-];
-
-const getNextId = (): number => {
-  return itens.length > 0 ? Math.max(...itens.map(item => item.id)) + 1 : 1;
-};
+import { itemRepository } from '@/repositories/itemRepository.js';
 
 const validateItem = (item: CreateItemDTO): string | null => {
   if (!item.name || item.name.trim() === '') {
@@ -25,12 +16,13 @@ const validateItem = (item: CreateItemDTO): string | null => {
 
 export const itemController = {
     async list(req: Request, res: Response<Item[]>) {
+        const itens = itemRepository.findAll();
         return res.json(itens);
     },
 
     async search(req: Request<{ id: string }>, res: Response<Item | { error: string }>) {
         const id = parseInt(req.params.id);
-        const item = itens.find(item => item.id === id);
+        const item = itemRepository.findOneBy(id);
 
         if (!item) {
             return res.status(404).json({ error: 'Item não encontrado'});
@@ -47,26 +39,18 @@ export const itemController = {
             return res.status(400).json({ error });
         }
 
-        const completeItem: Item = {
-            id: getNextId(),
+        const createdItem = itemRepository.create({
             name: newItem.name.trim(),
             quantity: newItem.quantity
-        };
-
-        itens.push(completeItem);
-        return res.status(201).json(completeItem);
+        });
+        
+        return res.status(201).json(createdItem);
     },
 
     async update(req: Request<{ id: string }, {}, UpdateItemDTO>, res: Response<Item | { error: string }>) {
         const id = parseInt(req.params.id);
-        const updateData = req.body;
-
-        const index = itens.findIndex(item => item.id === id);
-
-        if (index === -1) {
-            return res.status(404).json({ error: 'Item não encontrado' });
-        }
-
+        const updateData = req.body;       
+       
         if (updateData.name !== undefined && updateData.name.trim() === '') {
             return res.status(400).json({ error: 'Nome não pode estar vazio'});
         }
@@ -75,24 +59,26 @@ export const itemController = {
             return res.status(400).json({ error: 'Quantidade deve ser um número positivo' });
         }
 
-        itens[index] = {
-            ...itens[index],
-            ...updateData,
-            name: updateData.name ? updateData.name.trim() : itens[index].name,
-        };
+        const updatedItem = itemRepository.update(id, {
+            name: updateData.name?.trim(),
+            quantity: updateData.quantity
+        });
+
+        if (!updatedItem) {
+            return res.status(404).json({ error: 'Item não encontrado' });
+        }
     
-        return res.json(itens[index]);
+        return res.json(updatedItem);
     },
 
     async delete(req: Request<{ id: string }>, res: Response<{ success: boolean } | { error: string }>) {
-        const id = parseInt(req.params.id);
-        const initialLength = itens.length;
+        const id = parseInt(req.params.id);        
 
-        itens = itens.filter(item => item.id !== id);
+        const deleted = itemRepository.delete(id);
 
-        if (itens.length === initialLength) {
-            return res.status(404).json({ error: 'Item não encontrado'});
-        } 
+        if (!deleted) {
+            return res.status(404).json({ error: 'Item não encontrado' });
+        }      
 
         return res.json({ success: true });
     }
