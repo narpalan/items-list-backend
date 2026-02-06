@@ -77,6 +77,7 @@ curl -X PUT http://localhost:5000/itens/1 \
 
 ## 🗄️ Modelo de Dados
 
+```
 interface Item {
   id: number;          // Auto-incremento
   name: string;        // Nome do item (obrigatorio)
@@ -84,6 +85,7 @@ interface Item {
   created_at: Date;    // Timestamp automatico
   updated_at: Date;    // Atualizado via trigger
 }
+```
 
 
 ## 🎯 Motivacao
