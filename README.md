@@ -65,15 +65,17 @@ Siga os passos abaixo para instalar e rodar o projeto localmente:
 ### Exemplos de Requisicao
 
 Criar item:
+```
 curl -X POST http://localhost:5000/itens \
   -H "Content-Type: application/json" \
   -d '{"name": "Notebook", "quantity": 5}'
-
+```
 Atualizar item:
+```
 curl -X PUT http://localhost:5000/itens/1 \
   -H "Content-Type: application/json" \
   -d '{"quantity": 10}'
-
+```
 
 ## 🗄️ Modelo de Dados
 
