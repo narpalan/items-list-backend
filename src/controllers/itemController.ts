@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { Item, CreateItemDTO, UpdateItemDTO } from '../types/item.js';
-import { itemRepository } from '@/repositories/itemRepository.js';
+import { itemRepository } from '../repositories/itemRepository.js';
 
 const validateItem = (item: CreateItemDTO): string | null => {
   if (!item.name || item.name.trim() === '') {
